@@ -30,7 +30,7 @@ export default function RegisterScreen() {
     try {
       // ⚠️ CRITICAL: Replace '192.168.1.55' with YOUR computer's actual IPv4 address!
       const response = await fetch(
-        "http://10.195.197.178:5000/api/auth/register",
+        "http://10.31.19.94:5000/api/auth/register",
         {
           method: "POST",
           headers: {
