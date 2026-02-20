@@ -31,3 +31,36 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+// Add this right below your register function!
+const login = async (req, res) => {
+  try {
+    // 1. Grab the email and password the user typed in the app
+    const { email, password } = req.body;
+
+    // 2. Look inside MongoDB to see if this email exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "User not found! Please sign up." });
+    }
+
+    // 3. Check if the password matches
+    // (Assuming you used bcrypt to encrypt the password during register)
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Wrong password! Try again." });
+    }
+
+    // 4. Success! Tell the frontend to let them in.
+    res.status(200).json({
+      message: "Login successful!",
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error during login." });
+  }
+};
+module.exports = { register, login };
