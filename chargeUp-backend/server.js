@@ -1,10 +1,15 @@
-// backend/server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
 // 1. Load your secret variables
 dotenv.config();
+
+// Import Models and Routes
+// Note: Make sure the file in your 'models' folder is exactly named 'HostDetail.js' or update this path!
+const HostDetail = require("./models/HostDetail"); 
+const authRoutes = require('./src/routes/authRoutes'); 
 
 const app = express();
 
@@ -12,37 +17,60 @@ const app = express();
 app.use(cors()); // Allows Frontend to connect
 app.use(express.json()); // Allows server to read JSON data
 
-// 3. Simple Test Route
+// 3. Database Connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Vault Connected! 🔐'))
+  .catch((err) => console.log('Vault Connection Failed:', err));
+
+// ----------------------
+// 4. ROUTES
+// ----------------------
+
+// Simple Test Route
 app.get('/', (req, res) => {
   res.send('ChargeUp Backend is Running! ⚡');
 });
 
-// 4. Start Server
+// Auth Routes (Login, Register)
+app.use('/api/auth', authRoutes); 
+
+// Host Details Route (Saves to DB!)
+app.post("/api/host-details", async (req, res) => {
+  try {
+    const { fullName, address, idNumber, telephone, chargerType } = req.body;
+
+    // Double-check that nothing is empty
+    if (!fullName || !address || !idNumber || !telephone || !chargerType) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Create a new document using our Model
+    const newHostDetail = new HostDetail({
+      fullName,
+      address,
+      idNumber,
+      telephone,
+      chargerType,
+    });
+
+    // Save it to MongoDB Atlas!
+    await newHostDetail.save();
+
+    console.log("New Host Details saved:", newHostDetail.fullName);
+
+    // Send a success message back to the phone
+    res.status(201).json({ message: "Host details saved successfully!" });
+    
+  } catch (error) {
+    console.error("Error saving host details:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// ----------------------
+// 5. START SERVER
+// ----------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is purring on port ${PORT}`);
 });
-
-
-
-
-
-// ... keep your other imports ...
-const authRoutes = require('./src/routes/authRoutes'); // <--- ADD THIS
-
-// ... keep your app.use(express.json()) ...
-
-// This tells the server: "Any URL starting with /api/auth goes to the authRoutes file"
-app.use('/api/auth', authRoutes); // <--- ADD THIS
-
-// ... keep your app.listen ...
-
-
-
-
-const mongoose = require('mongoose');
-
-// This tells the server to go grab the secret key from the .env file
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Vault Connected! 🔐'))
-  .catch((err) => console.log('Vault Connection Failed:', err));

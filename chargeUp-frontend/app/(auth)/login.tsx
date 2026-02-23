@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from "react";
 import {
   View,
@@ -41,8 +42,19 @@ export default function LoginScreen() {
 
       if (response.status === 200) {
         Alert.alert("Welcome Back!", "Login successful.");
-        // Go to the main app after successful login
-        router.replace("/(client)/(tabs)");
+        
+        // 📦 Check the "memory box" to see what role they picked
+        const role = await AsyncStorage.getItem("userRole");
+
+        // 🗺️ The Fork in the Road
+        if (role === "host") {
+          // If they are a Lender/Host, send them to the Host details page!
+          router.replace("/(host)/host-details" as any); 
+        } else {
+          // If they are an EV Owner (Client), send them to the regular dashboard
+          router.replace("/(client)/(tabs)" as any); 
+        }
+
       } else {
         Alert.alert("Login Failed", data.message);
       }

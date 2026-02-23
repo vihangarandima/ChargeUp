@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
@@ -19,23 +20,51 @@ export default function HostDetailsScreen() {
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [idNumber, setIdNumber] = useState("");
-  const [phone, setPhone] = useState("");
+  const [telephone, setTelephone] = useState(""); // Changed to telephone to match backend
   const [chargerType, setChargerType] = useState("");
 
-  const handleContinue = () => {
-    // Later, you will save this data to your backend!
-    console.log("Host details submitted!");
+  const handleContinue = async () => {
+    // 1. Basic validation to make sure they didn't leave anything blank
+    if (!fullName || !address || !idNumber || !telephone || !chargerType) {
+      Alert.alert("Missing Info", "Please fill out all the fields.");
+      return;
+    }
 
-    // Send the host to their specific dashboard/map
-    // Update this route to wherever your Host home screen is
-    router.replace("/(auth)/login");
+    try {
+      // 2. Send the data to your backend
+      const response = await fetch("http://10.139.222.178:5000/api/host-details", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          address,
+          idNumber,
+          telephone,
+          chargerType,
+        }),
+      });
+
+      const data = await response.json();
+
+      // 3. If successful, go to the Charger Details screen!
+      if (response.status === 201) {
+        router.push("/(host)/charger-details" as any);
+      } else {
+        Alert.alert("Error", data.message || "Failed to save details.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      Alert.alert("Connection Error", "Could not connect to the server. Make sure it is running!");
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Brand Header */}
         <Text style={styles.headerTitle}>ChargeUp</Text>
 
@@ -74,8 +103,8 @@ export default function HostDetailsScreen() {
           <TextInput
             style={styles.input}
             keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            value={telephone}
+            onChangeText={setTelephone}
           />
 
           <Text style={styles.label}>Charging unit type</Text>
