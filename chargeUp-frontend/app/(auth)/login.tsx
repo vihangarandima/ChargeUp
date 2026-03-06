@@ -1,74 +1,192 @@
-import React from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, SafeAreaView } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
   const router = useRouter();
+  const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      emailInputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleAppleLogin = () => {
+    Alert.alert("Apple Login", "Navigating to Apple Sign-In...");
+  };
+
+  const handleGoogleLogin = () => {
+    Alert.alert("Google Login", "Navigating to Google Sign-In...");
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.inner}>
-        <Text style={styles.brandTitle}>ChargeUp</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        <View style={styles.brandCenter}>
-          <Ionicons name="flash" size={80} color="white" />
-          <Text style={styles.brandTagline}>Find, book and pay</Text>
-        </View>
+        <LinearGradient
+          colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
+          locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+          style={StyleSheet.absoluteFillObject}
+        />
 
-        <View style={styles.inputContainer}>
-          <TextInput placeholder="Email address" placeholderTextColor="#999" style={styles.underlineInput} />
-          <View style={styles.passwordRow}>
-            <TextInput placeholder="Password" placeholderTextColor="#999" secureTextEntry style={[styles.underlineInput, {flex: 1}]} />
-            <Ionicons name="eye-off-outline" size={20} color="white" />
-          </View>
-        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.inner}>
 
-        <Pressable style={styles.pillButton} onPress={() => router.replace("/(tabs)")}>
-          <Text style={styles.pillButtonText}>Login</Text>
-        </Pressable>
+              <Text style={styles.brandTitle}>ChargeUp</Text>
 
-        <Text style={styles.orText}>or</Text>
+              <View style={styles.brandCenter}>
+                <Ionicons name="flash" size={80} color="white" />
+                <Text style={styles.brandTagline}>Find, book and pay</Text>
+              </View>
 
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.loginWithText}>Login with</Text>
-          <View style={styles.line} />
-        </View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  ref={emailInputRef}
+                  placeholder="Email address"
+                  placeholderTextColor="rgba(255,255,255,0.6)"
+                  style={styles.underlineInput}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordInputRef.current?.focus()}
+                />
 
-        <View style={styles.socialRow}>
-          <FontAwesome name="apple" size={40} color="white" />
-          <FontAwesome name="google" size={40} color="#DB4437" />
-        </View>
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    ref={passwordInputRef}
+                    placeholder="Password"
+                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    secureTextEntry={!isPasswordVisible}
+                    style={[styles.underlineInput, { flex: 1, borderBottomWidth: 0, marginBottom: 0 }]}
+                    returnKeyType="done"
+                  />
+                  <Pressable
+                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                    style={styles.eyeIcon}
+                  >
+                    <Ionicons
+                      name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                      size={22}
+                      color="white"
+                    />
+                  </Pressable>
+                </View>
+              </View>
 
-        <View style={styles.signupRow}>
-          <Text style={styles.noAccountText}>Don't have an Account? </Text>
-          <Pressable onPress={() => router.push("/(auth)/register")}>
-            <Text style={styles.signupLink}>Signup</Text>
-          </Pressable>
-        </View>
+              {/* UPDATED DIRECTION: GO TO VEHICLE DETAILS */}
+              <Pressable
+                style={({ pressed }) => [styles.pillButton, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/vehicle-details")}
+              >
+                <Text style={styles.pillButtonText}>Login</Text>
+              </Pressable>
+
+              <Text style={styles.orText}>or</Text>
+
+              <View style={styles.dividerContainer}>
+                <View style={styles.line} />
+                <Text style={styles.loginWithText}>Login with</Text>
+                <View style={styles.line} />
+              </View>
+
+              <View style={styles.socialRow}>
+                <Pressable
+                  style={({ pressed }) => [styles.socialBtn, pressed && { opacity: 0.6 }]}
+                  onPress={handleAppleLogin}
+                >
+                  <FontAwesome name="apple" size={40} color="white" />
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [styles.socialBtn, pressed && { opacity: 0.6 }]}
+                  onPress={handleGoogleLogin}
+                >
+                  <FontAwesome name="google" size={36} color="#DB4437" />
+                </Pressable>
+              </View>
+
+              <View style={styles.signupRow}>
+                <Text style={styles.noAccountText}>Don't have an Account? </Text>
+                <Pressable onPress={() => router.push("/(auth)/register")}>
+                  <Text style={styles.signupLink}>Signup</Text>
+                </Pressable>
+              </View>
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </View>
-    </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B1D21" },
-  inner: { paddingHorizontal: 30, flex: 1, alignItems: "center" },
-  brandTitle: { color: "white", fontSize: 24, fontWeight: "bold", alignSelf: "flex-start", marginTop: 20 },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  inner: { paddingHorizontal: 35, flex: 1, alignItems: "center" },
+  brandTitle: { color: "white", fontSize: 24, fontWeight: "800", alignSelf: "flex-start", marginTop: 20 },
   brandCenter: { alignItems: "center", marginVertical: 40 },
-  brandTagline: { color: "white", fontSize: 16, marginTop: 10 },
+  brandTagline: { color: "white", fontSize: 18, marginTop: 10, fontWeight: '300' },
   inputContainer: { width: "100%", marginBottom: 30 },
-  underlineInput: { borderBottomWidth: 1, borderBottomColor: "white", color: "white", paddingVertical: 10, fontSize: 16, marginBottom: 20 },
-  passwordRow: { flexDirection: "row", alignItems: "center" },
-  pillButton: { borderWidth: 1, borderColor: "white", borderRadius: 30, paddingVertical: 12, paddingHorizontal: 60 },
-  pillButtonText: { color: "white", fontSize: 18 },
-  orText: { color: "white", marginVertical: 10 },
-  dividerContainer: { flexDirection: "row", alignItems: "center", width: "100%", marginVertical: 15 },
-  line: { flex: 1, height: 1, backgroundColor: "white", opacity: 0.3 },
-  loginWithText: { color: "white", marginHorizontal: 10 },
-  socialRow: { flexDirection: "row", gap: 50, marginVertical: 20 },
-  signupRow: { flexDirection: "row", marginTop: 20 },
-  noAccountText: { color: "white" },
-  signupLink: { color: "#83B4BB", fontWeight: "bold" }
+  underlineInput: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.5)",
+    color: "white",
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 25
+  },
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.5)",
+  },
+  eyeIcon: { padding: 10 },
+  pillButton: {
+    width: width * 0.7,
+    borderWidth: 1.2,
+    borderColor: "rgba(255,255,255,0.6)",
+    borderRadius: 30,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)'
+  },
+  pillButtonText: { color: "white", fontSize: 20, fontWeight: '500' },
+  orText: { color: "white", marginVertical: 10, opacity: 0.8 },
+  dividerContainer: { flexDirection: "row", alignItems: "center", width: "100%", marginVertical: 10 },
+  line: { flex: 1, height: 1, backgroundColor: "white", opacity: 0.2 },
+  loginWithText: { color: "white", marginHorizontal: 15, fontSize: 14, opacity: 0.7 },
+  socialRow: { flexDirection: "row", gap: 50, marginVertical: 20, alignItems: 'center' },
+  socialBtn: { padding: 10 },
+  signupRow: { flexDirection: "row", marginTop: 10 },
+  noAccountText: { color: "rgba(255,255,255,0.8)" },
+  signupLink: { color: "#81D4FA", fontWeight: "bold" }
 });
