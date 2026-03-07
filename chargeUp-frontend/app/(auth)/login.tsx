@@ -20,47 +20,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // Bonus: toggle password visibility!
 
-  // 2. Added the Login Logic
+  // Login handler - navigates based on role
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Missing Info", "Please enter both email and password.");
-      return;
-    }
+    const role = await AsyncStorage.getItem("userRole");
 
-    try {
-      // Sending data to your backend
-      const response = await fetch(
-        "http://10.0.2.2:5001/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.status === 200) {
-        Alert.alert("Welcome Back!", "Login successful.");
-        
-        // 📦 Check the "memory box" to see what role they picked
-        const role = await AsyncStorage.getItem("userRole");
-
-        // 🗺️ The Fork in the Road
-        if (role === "host") {
-          // If they are a Lender/Host, send them to the Host details page!
-          router.replace("/(host)/host-details" as any); 
-        } else {
-          // If they are an EV Owner (Client), send them to the regular dashboard
-          router.replace("/(client)/(tabs)" as any); 
-        }
-
-      } else {
-        Alert.alert("Login Failed", data.message);
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      Alert.alert("Connection Error", "Make sure your backend is running!");
+    if (role === "host") {
+      router.replace("/(host)/host-details" as any);
+    } else {
+      router.replace("/(client)/(tabs)" as any);
     }
   };
 
