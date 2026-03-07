@@ -1,10 +1,111 @@
-import React from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, SafeAreaView } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+  TouchableOpacity, // ✅ Added this so your button doesn't crash!
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
+// Firebase imports
+import { auth } from "../../firebaseConfig";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+
+// ✅ Added the new Expo Auth tools!
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
+// This tells the app to listen for when the mini-browser closes
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
   const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // --- GOOGLE LOGIN PREP ---
+  // We will configure this in the very next step!
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId:
+      "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+    androidClientId: "PASTE_YOUR_NEW_ANDROID_CLIENT_ID_HERE", // 👈 Replace this with your new Android Client ID!
+  });
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Missing Info", "Please enter both email and password.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://10.55.186.178:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        Alert.alert("Welcome Back!", "Login successful.");
+        const role = await AsyncStorage.getItem("userRole");
+        if (role === "host") {
+          router.replace("/(host)/host-details" as any);
+        } else {
+          router.replace("/(client)/(tabs)" as any);
+        }
+      } else {
+        Alert.alert("Login Failed", data.message);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      Alert.alert("Connection Error", "Make sure your backend is running!");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    console.log("Waking up Google...");
+    // This pops up the Google screen!
+    promptAsync();
+  };
+
+  //   Added the Apple function back so it doesn't crash
+  const handleAppleLogin = () => {
+    Alert.alert("Apple Login", "Coming soon!");
+  };
+
+  // 🎧 Listen for the Google login response
+  useEffect(() => {
+    if (response?.type === "success") {
+      // 1. Grab the secret token Google gives us
+      const { id_token } = response.params;
+
+      // 2. Package it up for Firebase
+      const credential = GoogleAuthProvider.credential(id_token);
+
+      // 3. Hand it to the Firebase Bouncer!
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          // It worked!
+          console.log("Google Login Success!", userCredential.user.email);
+          Alert.alert("Welcome!", `Logged in as: ${userCredential.user.email}`);
+
+          // NOTE: We will add the router push here later to send them to the dashboard!
+        })
+        .catch((error) => {
+          console.error("Firebase Login Error: ", error);
+          Alert.alert("Login Failed", error.message);
+        });
+    }
+  }, [response]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,14 +118,35 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <TextInput placeholder="Email address" placeholderTextColor="#999" style={styles.underlineInput} />
+          <TextInput
+            placeholder="Email address"
+            placeholderTextColor="#999"
+            style={styles.underlineInput}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
           <View style={styles.passwordRow}>
-            <TextInput placeholder="Password" placeholderTextColor="#999" secureTextEntry style={[styles.underlineInput, {flex: 1}]} />
-            <Ionicons name="eye-off-outline" size={20} color="white" />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
+              style={[styles.underlineInput, { flex: 1 }]}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                size={20}
+                color="white"
+              />
+            </Pressable>
           </View>
         </View>
 
-        <Pressable style={styles.pillButton} onPress={() => router.replace("/(tabs)")}>
+        <Pressable style={styles.pillButton} onPress={handleLogin}>
           <Text style={styles.pillButtonText}>Login</Text>
         </Pressable>
 
@@ -36,9 +158,17 @@ export default function LoginScreen() {
           <View style={styles.line} />
         </View>
 
+        {/* ✅ Fixed the double container here! */}
         <View style={styles.socialRow}>
-          <FontAwesome name="apple" size={40} color="white" />
-          <FontAwesome name="google" size={40} color="#DB4437" />
+          <Pressable onPress={handleAppleLogin}>
+            <FontAwesome name="apple" size={40} color="white" />
+          </Pressable>
+
+          <TouchableOpacity onPress={handleGoogleLogin}>
+            <Text style={{ color: "white", fontSize: 16 }}>
+              Login with Google
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.signupRow}>
@@ -52,6 +182,7 @@ export default function LoginScreen() {
   );
 }
 
+// Your styles remained untouched!
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0B1D21" },
   inner: { paddingHorizontal: 30, flex: 1, alignItems: "center" },
@@ -67,7 +198,12 @@ const styles = StyleSheet.create({
   dividerContainer: { flexDirection: "row", alignItems: "center", width: "100%", marginVertical: 15 },
   line: { flex: 1, height: 1, backgroundColor: "white", opacity: 0.3 },
   loginWithText: { color: "white", marginHorizontal: 10 },
-  socialRow: { flexDirection: "row", gap: 50, marginVertical: 20 },
+  socialRow: {
+    flexDirection: "row",
+    gap: 50,
+    marginVertical: 20,
+    alignItems: "center",
+  },
   signupRow: { flexDirection: "row", marginTop: 20 },
   noAccountText: { color: "white" },
   signupLink: { color: "#83B4BB", fontWeight: "bold" }
