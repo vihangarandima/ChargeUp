@@ -115,13 +115,28 @@ export default function BookingConfirmation() {
           </View>
         </TouchableOpacity>
 
-        {/* Done Button */}
-        <TouchableOpacity
-          style={styles.doneButton}
-          onPress={() => router.replace('/')}
-        >
-          <Text style={styles.doneButtonText}>Done</Text>
-        </TouchableOpacity>
+        {/* --- ACTION BUTTONS --- */}
+        <View style={styles.buttonContainer}>
+          
+          {/* Scan QR Code Button - Styled exactly like Done button */}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/scan-qr')}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="qr-code" size={20} color="#0B1D21" style={{ marginRight: 10 }} />
+              <Text style={styles.actionButtonText}>Scan QR Code</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Done Button */}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.replace('/')}
+          >
+            <Text style={styles.actionButtonText}>Done</Text>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
     </View>
@@ -243,14 +258,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 4,
   },
-  doneButton: {
+  buttonContainer: {
+    marginTop: 30,
+    gap: 15,
+  },
+  actionButton: {
     backgroundColor: '#00D1FF',
     padding: 18,
     borderRadius: 18,
-    marginTop: 30,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  doneButtonText: {
+  actionButtonText: {
     color: '#0B1D21',
     fontSize: 18,
     fontWeight: 'bold',
