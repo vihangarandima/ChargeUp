@@ -15,73 +15,30 @@ export default function TabLayout() {
         tabBarHideOnKeyboard: true,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={24} color={color} />
-          ),
-        }}
+      <Tabs.Screen 
+        name="index" 
+        options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} 
       />
-      <Tabs.Screen
-        name="map"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="location-outline" size={24} color={color} />
-          ),
-        }}
+      <Tabs.Screen 
+        name="map" 
+        options={{ tabBarIcon: ({ color }) => <Ionicons name="location-outline" size={24} color={color} /> }} 
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="reader-outline" size={24} color={color} />
-          ),
-        }}
+      <Tabs.Screen 
+        name="explore" 
+        options={{ tabBarIcon: ({ color }) => <Ionicons name="reader-outline" size={24} color={color} /> }} 
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-circle-outline" size={26} color={color} />
-          ),
-        }}
+      <Tabs.Screen 
+        name="profile" 
+        options={{ tabBarIcon: ({ color }) => <Ionicons name="person-circle-outline" size={26} color={color} /> }} 
       />
-      <Tabs.Screen
-        name="station-details"
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="charger-info"
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="bookig-confirmation"
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="scan-qr"
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="charging-session"
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
+
+      {/* Forcefully hiding all the extra group project files so they don't appear as arrows */}
+      <Tabs.Screen name="station-details" options={{ href: null }} />
+      <Tabs.Screen name="charger-info" options={{ href: null }} />
+      <Tabs.Screen name="bookig-confirmation" options={{ href: null }} />
+      <Tabs.Screen name="scan-qr" options={{ href: null }} />
+      <Tabs.Screen name="charging-session" options={{ href: null }} />
+      <Tabs.Screen name="payment" options={{ href: null }} />
     </Tabs>
   );
 }
